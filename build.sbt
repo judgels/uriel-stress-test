@@ -7,7 +7,8 @@ lazy val urielstresstest = (project in file("."))
         crossPaths := false,
         mainClass in (Compile, run) := Some("org.iatoki.judgels.uriel.stresstest.Main"),
         libraryDependencies ++= Seq(
-            "org.apache.httpcomponents" % "httpclient" % "4.4",
+            "org.apache.httpcomponents" % "httpclient" % "4.4.1",
+            "org.apache.httpcomponents" % "httpmime" % "4.4.1",
             "com.google.guava" % "guava" % "r05"
         )
     )
