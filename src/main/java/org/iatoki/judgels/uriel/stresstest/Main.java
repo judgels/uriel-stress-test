@@ -12,6 +12,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class Main {
     public static void main(String[] args) {
@@ -24,6 +26,17 @@ public final class Main {
 
         if (args[0].equals("single")) {
             submitSingle();
+        } else if (args[0].equals("simultaneous")) {
+
+            if (args.length != 3) {
+                System.out.println("Usage: simultaeous <threads> <submissionsInEachThread>");
+                System.exit(1);
+            }
+
+            int threads = Integer.parseInt(args[1]);
+            int submissionsInEachThread = Integer.parseInt(args[2]);
+
+            submitSimultaneous(threads, submissionsInEachThread);
         }
     }
 
@@ -46,6 +59,23 @@ public final class Main {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new RuntimeException("Response is " + response.getStatusLine().getStatusCode());
         }
+    }
+
+    private static void submitSimultaneous(int threads, int submissionsInEachThread) {
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+        for (int t = 0; t < threads; t++) {
+            executor.execute(() -> {
+                for (int s = 0; s < submissionsInEachThread; s++) {
+                    submitSingle();
+                    System.out.println("Submitted!");
+                }
+            });
+        }
+
+        executor.shutdown();
+
+        while (!executor.isTerminated());
     }
 
     private static HttpPost getUrielSubmissionRequest() {
