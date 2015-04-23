@@ -1,5 +1,6 @@
 package org.iatoki.judgels.uriel.stresstest;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -9,6 +10,8 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class Main {
+    private static final Logger logger = LoggerFactory.getLogger("application");
+
     public static void main(String[] args) {
         init();
 
@@ -59,6 +64,15 @@ public final class Main {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new RuntimeException("Response is " + response.getStatusLine().getStatusCode());
         }
+
+        String submissionJid;
+        try {
+            submissionJid = IOUtils.toString(response.getEntity().getContent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        logger.info("Submitted submission " + submissionJid);
     }
 
     private static void submitSimultaneous(int threads, int submissionsInEachThread) {
@@ -68,7 +82,6 @@ public final class Main {
             executor.execute(() -> {
                 for (int s = 0; s < submissionsInEachThread; s++) {
                     submitSingle();
-                    System.out.println("Submitted!");
                 }
             });
         }
